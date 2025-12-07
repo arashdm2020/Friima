@@ -62,22 +62,31 @@ class ApiClient {
     return response.json();
   }
 
-  // Authentication
-  async getNonce(address: string): Promise<{ nonce: string }> {
-    return this.request('/auth/nonce', {
+  // Authentication - Email/Password based
+  async register(email: string, password: string, userData: any): Promise<{ token: string; user: any }> {
+    const result = await this.request<{ token: string; user: any }>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ address }),
+      body: JSON.stringify({ email, password, ...userData }),
     });
+    
+    this.setToken(result.token);
+    return result;
   }
 
-  async login(
-    address: string,
-    signature: string,
-    nonce: string
-  ): Promise<{ token: string; user: any }> {
+  async login(email: string, password: string): Promise<{ token: string; user: any }> {
     const result = await this.request<{ token: string; user: any }>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ address, signature, nonce }),
+      body: JSON.stringify({ email, password }),
+    });
+    
+    this.setToken(result.token);
+    return result;
+  }
+
+  async loginWithLinkedIn(code: string): Promise<{ token: string; user: any }> {
+    const result = await this.request<{ token: string; user: any }>('/auth/linkedin', {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     });
     
     this.setToken(result.token);
@@ -98,6 +107,52 @@ class ApiClient {
 
   async getUserByAddress(address: string): Promise<any> {
     return this.request(`/users/${address}`);
+  }
+
+  // Chat
+  async getConversations(): Promise<any> {
+    return this.request('/chat/conversations');
+  }
+
+  async getMessages(conversationId: string): Promise<any> {
+    return this.request(`/chat/conversations/${conversationId}/messages`);
+  }
+
+  async sendMessage(conversationId: string, message: string, file?: File): Promise<any> {
+    if (file) {
+      const formData = new FormData();
+      formData.append('message', message);
+      formData.append('file', file);
+
+      const headers: Record<string, string> = {};
+      if (this.token) {
+        headers['Authorization'] = `Bearer ${this.token}`;
+      }
+
+      const response = await fetch(`${this.baseURL}/chat/conversations/${conversationId}/messages`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+
+      return response.json();
+    }
+
+    return this.request(`/chat/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
+  async createConversation(userId: string): Promise<any> {
+    return this.request('/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId }),
+    });
   }
 
   // Projects

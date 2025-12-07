@@ -13,7 +13,6 @@ const jobs = [
     duration: '2-3 months',
     skills: ['Solidity', 'React', 'Web3.js', 'IPFS', 'Node.js'],
     clientName: 'CryptoArt Studio',
-    clientWallet: '0x742d...A4B2',
     clientRating: 4.9,
     clientJobs: 12,
     verified: true,
@@ -28,9 +27,7 @@ const jobs = [
     duration: '2-4 weeks',
     skills: ['Solidity', 'Security', 'DeFi', 'Smart Contract Auditing'],
     clientName: 'DeFi Protocol',
-    clientWallet: '0x8F3c...B1D8',
     clientRating: 5.0,
-    clientJobs: 23,
     verified: true,
     posted: '5 hours ago',
     proposals: 15,
@@ -43,7 +40,6 @@ const jobs = [
     duration: '3-6 weeks',
     skills: ['React', 'TypeScript', 'Ethers.js', 'Web3', 'TailwindCSS'],
     clientName: 'Blockchain Startup',
-    clientWallet: '0x1A2B...C3D4',
     clientRating: 4.7,
     clientJobs: 8,
     verified: false,
@@ -58,7 +54,6 @@ const jobs = [
     duration: '1-2 months',
     skills: ['Solidity', 'Governance', 'Smart Contracts', 'Hardhat'],
     clientName: 'DAO Community',
-    clientWallet: '0x9E2F...D7A3',
     clientRating: 4.8,
     clientJobs: 5,
     verified: true,
@@ -73,9 +68,7 @@ const jobs = [
     duration: '2-4 weeks',
     skills: ['IPFS', 'JavaScript', 'Node.js', 'Web3 Storage'],
     clientName: 'NFT Platform',
-    clientWallet: '0x5C8D...E2F9',
     clientRating: 4.6,
-    clientJobs: 15,
     verified: true,
     posted: '1 week ago',
     proposals: 6,
@@ -231,12 +224,11 @@ export default function FindWorkPage() {
                   {/* Client Info */}
                   <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
                     <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center text-white font-bold">
                         {job.clientName.charAt(0)}
                       </div>
                       <div>
                         <div className="font-medium text-gray-900">{job.clientName}</div>
-                        <div className="text-xs text-gray-500 font-mono">{job.clientWallet}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 text-yellow-500">

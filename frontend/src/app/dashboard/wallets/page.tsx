@@ -1,6 +1,7 @@
 'use client';
 
-import { useAccount, useBalance } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Wallet, 
   ArrowUpRight, 
@@ -10,23 +11,45 @@ import {
   ExternalLink,
   TrendingUp,
   DollarSign,
-  Coins
+  Coins,
+  Plus
 } from 'lucide-react';
-import { useState } from 'react';
 
 export default function WalletsPage() {
-  const { address, isConnected } = useAccount();
-  const { data: maticBalance } = useBalance({
-    address: address,
-  });
-
+  const { user, isAuthenticated } = useAuth();
+  const [walletAddress, setWalletAddress] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showConnectWallet, setShowConnectWallet] = useState(false);
+
+  useEffect(() => {
+    if (user?.wallet_address) {
+      setWalletAddress(user.wallet_address);
+    }
+  }, [user]);
 
   const copyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleConnectWallet = async () => {
+    // اتصال wallet با MetaMask/WalletConnect
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        setWalletAddress(address);
+        // ذخیره address در profile کاربر
+        // await api.updateProfile({ wallet_address: address });
+        setShowConnectWallet(false);
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+      }
+    } else {
+      alert('Please install MetaMask!');
     }
   };
 
@@ -34,7 +57,7 @@ export default function WalletsPage() {
     {
       name: 'MATIC',
       symbol: 'MATIC',
-      balance: maticBalance?.formatted || '0',
+      balance: '0',
       usdValue: '$0.00',
       change: '+0.00%',
       icon: '◈',
@@ -98,15 +121,36 @@ export default function WalletsPage() {
     },
   ];
 
-  if (!isConnected) {
+  if (!isAuthenticated) {
+    return (
+      <div className="container py-24">
+        <div className="max-w-md mx-auto text-center">
+          <Wallet className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h1 className="text-3xl font-bold mb-4">Please Login</h1>
+          <p className="text-gray-600 mb-8">
+            Please login to view your wallet and transactions
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!walletAddress) {
     return (
       <div className="container py-24">
         <div className="max-w-md mx-auto text-center">
           <Wallet className="h-16 w-16 text-gray-400 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-4">Connect Your Wallet</h1>
           <p className="text-gray-600 mb-8">
-            Please connect your wallet to view your balances and transactions
+            Connect your crypto wallet to manage your funds and transactions
           </p>
+          <button 
+            onClick={handleConnectWallet}
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            Connect Wallet
+          </button>
         </div>
       </div>
     );
@@ -122,7 +166,7 @@ export default function WalletsPage() {
         </div>
 
         {/* Wallet Address Card */}
-        <div className="bg-gradient-to-r from-primary-600 to-purple-600 rounded-lg p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-primary-600 to-accent-600 rounded-lg p-6 mb-8 text-white">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Your Wallet Address</h2>
             <div className="flex items-center gap-2">
@@ -133,7 +177,7 @@ export default function WalletsPage() {
                 <Copy className="h-4 w-4" />
               </button>
               <a
-                href={`https://polygonscan.com/address/${address}`}
+                href={`https://polygonscan.com/address/${walletAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
@@ -142,7 +186,7 @@ export default function WalletsPage() {
               </a>
             </div>
           </div>
-          <div className="font-mono text-2xl mb-2">{address}</div>
+          <div className="font-mono text-xl mb-2 break-all">{walletAddress}</div>
           {copied && (
             <p className="text-sm text-primary-100">Address copied to clipboard!</p>
           )}

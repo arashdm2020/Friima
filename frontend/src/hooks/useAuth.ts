@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAccount, useSignMessage } from 'wagmi';
 import { api } from '@/lib/api';
 import { wsClient } from '@/lib/websocket';
 
 export function useAuth() {
-  const { address, isConnected } = useAccount();
-  const { signMessageAsync } = useSignMessage();
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -13,10 +10,10 @@ export function useAuth() {
   useEffect(() => {
     // Load user from token if available
     const token = localStorage.getItem('jwt_token');
-    if (token && isConnected) {
+    if (token) {
       loadUser();
     }
-  }, [isConnected]);
+  }, []);
 
   const loadUser = async () => {
     try {
@@ -33,25 +30,12 @@ export function useAuth() {
     }
   };
 
-  const login = async () => {
-    if (!address) {
-      setError('Please connect your wallet first');
-      return;
-    }
-
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Get nonce
-      const { nonce } = await api.getNonce(address);
-
-      // 2. Sign message
-      const message = `Sign this message to authenticate with FARIIMA.\n\nNonce: ${nonce}`;
-      const signature = await signMessageAsync({ message });
-
-      // 3. Login
-      const { token, user: userData } = await api.login(address, signature, nonce);
+      const { token, user: userData } = await api.login(email, password);
       
       setUser(userData);
       
@@ -63,6 +47,52 @@ export function useAuth() {
       return userData;
     } catch (err: any) {
       setError(err.message || 'Failed to login');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (email: string, password: string, userData: any) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await api.register(email, password, userData);
+      
+      setUser(result.user);
+      
+      // Connect WebSocket
+      if (result.user.id) {
+        wsClient.connect(result.user.id);
+      }
+      
+      return result.user;
+    } catch (err: any) {
+      setError(err.message || 'Failed to register');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithLinkedIn = async (code: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { token, user: userData } = await api.loginWithLinkedIn(code);
+      
+      setUser(userData);
+      
+      // Connect WebSocket
+      if (userData.id) {
+        wsClient.connect(userData.id);
+      }
+      
+      return userData;
+    } catch (err: any) {
+      setError(err.message || 'Failed to login with LinkedIn');
       throw err;
     } finally {
       setIsLoading(false);
@@ -81,6 +111,8 @@ export function useAuth() {
     isLoading,
     error,
     login,
+    register,
+    loginWithLinkedIn,
     logout,
   };
 }

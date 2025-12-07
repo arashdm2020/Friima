@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { Menu, X, Coins } from 'lucide-react';
+import { Menu, X, Coins, User, LogIn } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const navigation = [
   { name: 'Find Work', href: '/find-work' },
@@ -15,6 +15,7 @@ const navigation = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
@@ -49,8 +50,40 @@ export function Header() {
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <ConnectButton />
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:items-center lg:gap-4">
+          {isAuthenticated ? (
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-primary-600"
+              >
+                <User className="h-5 w-5" />
+                {user?.full_name || user?.email}
+              </Link>
+              <button
+                onClick={logout}
+                className="text-sm font-semibold text-gray-600 hover:text-gray-900"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="flex items-center gap-2 text-sm font-semibold text-gray-900 hover:text-primary-600"
+              >
+                <LogIn className="h-5 w-5" />
+                Login
+              </Link>
+              <Link
+                href="/auth/register"
+                className="btn-primary text-sm"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -88,7 +121,45 @@ export function Header() {
                   ))}
                 </div>
                 <div className="py-6">
-                  <ConnectButton />
+                  {isAuthenticated ? (
+                    <div className="space-y-2">
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center gap-2 -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <User className="h-5 w-5" />
+                        {user?.full_name || user?.email}
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-600 hover:bg-gray-50 w-full text-left"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Link
+                        href="/auth/login"
+                        className="flex items-center gap-2 -mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <LogIn className="h-5 w-5" />
+                        Login
+                      </Link>
+                      <Link
+                        href="/auth/register"
+                        className="btn-primary block text-center"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Sign Up
+                      </Link>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

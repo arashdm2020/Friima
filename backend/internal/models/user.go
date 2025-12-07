@@ -8,40 +8,33 @@ import (
 )
 
 type User struct {
-	ID        uuid.UUID      `json:"id" gorm:"type:uuid;primary_key;default:gen_random_uuid()"`
-	Address   string         `json:"address" gorm:"uniqueIndex;not null"`
-	Username  string         `json:"username" gorm:"index"`
-	Email     string         `json:"email" gorm:"index"`
-	FullName  string         `json:"full_name"`
-	Bio       string         `json:"bio" gorm:"type:text"`
-	Avatar    string         `json:"avatar"`
-	Role      string         `json:"role" gorm:"default:'user'"` // user, freelancer, client, admin
-	
-	// Profile
-	Title         string   `json:"title"`
-	Skills        []string `json:"skills" gorm:"type:jsonb"`
-	HourlyRate    float64  `json:"hourly_rate"`
-	Location      string   `json:"location"`
-	Languages     []string `json:"languages" gorm:"type:jsonb"`
-	Website       string   `json:"website"`
-	Github        string   `json:"github"`
-	LinkedIn      string   `json:"linkedin"`
-	Twitter       string   `json:"twitter"`
-	
-	// Stats
-	TotalProjects   int     `json:"total_projects" gorm:"default:0"`
-	CompletedProjects int   `json:"completed_projects" gorm:"default:0"`
-	Rating          float64 `json:"rating" gorm:"default:0"`
-	ReviewCount     int     `json:"review_count" gorm:"default:0"`
-	
-	// Blockchain
-	Nonce         string    `json:"-" gorm:"not null"`
-	NonceExpiry   time.Time `json:"-"`
-	
-	// Timestamps
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID                uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Email             string         `gorm:"uniqueIndex;not null" json:"email"`
+	Password          string         `json:"-"` // Hashed password
+	Role              string         `gorm:"not null;check:role IN ('client', 'freelancer')" json:"role"` // client or freelancer
+	Address           string         `gorm:"uniqueIndex" json:"address"` // Wallet address (optional)
+	Username          string         `gorm:"uniqueIndex" json:"username"`
+	FullName          string         `json:"full_name"`
+	Bio               string         `gorm:"type:text" json:"bio"`
+	Avatar            string         `json:"avatar"`
+	Title             string         `json:"title"` // For freelancers
+	CompanyName       string         `json:"company_name"` // For clients
+	Website           string         `json:"website"` // For clients
+	Skills            datatypes.JSON `gorm:"type:jsonb;default:'[]'" json:"skills"` // For freelancers
+	HourlyRate        float64        `json:"hourly_rate"` // For freelancers
+	Location          string         `json:"location"`
+	ResumeURL         string         `json:"resume_url"` // For freelancers
+	Portfolio         datatypes.JSON `gorm:"type:jsonb;default:'[]'" json:"portfolio"` // For freelancers
+	TotalProjects     int            `gorm:"default:0" json:"total_projects"`
+	CompletedProjects int            `gorm:"default:0" json:"completed_projects"`
+	Rating            float64        `gorm:"default:0" json:"rating"`
+	ReviewCount       int            `gorm:"default:0" json:"review_count"`
+	Verified          bool           `gorm:"default:false" json:"verified"` // For clients
+	Nonce             string         `json:"-"`
+	NonceExpiry       time.Time      `json:"-"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	DeletedAt         gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 type Follow struct {
